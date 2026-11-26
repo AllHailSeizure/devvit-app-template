@@ -120,6 +120,7 @@ http.callsTo('api.example.com'); // recorded calls with parsed JSON bodies
 
 - An unstubbed call throws inside the app. It is also recorded, so the test fails at teardown even if the app catches the error.
 - Calls to hosts not listed in `devvit.json` `permissions.http.domains` fail the same way. Matching is exact, as on Devvit.
+- At teardown the harness yields to the event loop until fetches stop, so un-awaited work (e.g. fire-and-forget remote logging) is checked in the test that started it and cannot leak into the next test.
 - To assert on a failure on purpose, check `http.violations`, then clear it with `http.violations.length = 0`.
 
 ## Syncing
@@ -134,8 +135,9 @@ http.callsTo('api.example.com'); // recorded calls with parsed JSON bodies
 - **Snapshots**: Reddit objects are snapshots built from world state. Real objects also are, but real Listings paginate, while fake ones return a single page.
 - **Unspied calls**: `reddit.*` methods not listed above fall through to `@devvit/test`'s partial plugin mocks, which may throw "unimplemented". These include widgets, rules, removal reasons, flair templates, the moderation log, vault, crosspost, polls and `getPostData`. Add them with `world.use(...)`, or upstream them.
 - **Permissions**: the harness does not check moderator permissions for the app account; the app is assumed to be a full moderator. Reddit's rate limits, spam filters, AutoModerator and Crowd Control are not modeled.
-- **Platform side effects**: triggers fire only when a test calls the runner. Reddit's own events (AutoModerator removals, admin actions, edits by other apps) do not happen on their own. App actions do not re-fire triggers; on Reddit, an app's own comment fires `onCommentCreate` (apps usually ignore it).
-- **Event payloads**: they follow the protobuf JSON shapes, but enum fields use numeric values and many optional fields are defaulted.
+- **Platform side effects**: triggers fire only when a test calls the runner. Reddit's own events (AutoModerator removals, admin actions, edits by other apps) do not happen on their own. App actions do not re-fire triggers; on Reddit, an app's own comment fires `onCommentCreate` and its own removal fires `onModAction` with the app as moderator. Deliver those yourself (e.g. `runner.modAction('test-app', 'removelink', { targetId })`) when the app depends on them.
+- **Event payloads**: they follow the protobuf JSON shapes, but enum fields use numeric values and many optional fields are defaulted. A self post's `url` is its own reddit.com permalink, as in Reddit's API; this is assumed for trigger payloads, not verified against live events. Pass `url: ''` to model a payload with no URL.
+- **IDs**: generated ids (`t3_p1`, `t1_c2`, ...) skip ids a test already seeded; seeding a duplicate id throws.
 - **Cron**: the matcher runs at minute resolution in UTC. A 6-field (seconds) expression fires once per matching minute. Jobs fire in sequence, not concurrently.
 - **Settings**: validation (types, `onValidate` handlers) is not run. Secrets are plain values.
 - **Realtime, payments and the client webview** are not modeled. Use `mocks.realtime` / `mocks.media` directly.

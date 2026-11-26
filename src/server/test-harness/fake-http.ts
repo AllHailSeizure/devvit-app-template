@@ -119,7 +119,11 @@ export class FakeHttp {
     const rawBody =
       init?.body ?? (input instanceof Request ? await input.clone().text() : undefined);
     const body =
-      typeof rawBody === 'string' ? rawBody : rawBody == null ? undefined : String(rawBody);
+      typeof rawBody === 'string'
+        ? rawBody
+        : rawBody === null || rawBody === undefined
+          ? undefined
+          : String(rawBody);
     let json: unknown;
     if (body) {
       try {
@@ -162,7 +166,7 @@ export class FakeHttp {
     stub.hits++;
     const result = await stub.handler(call);
     if (result instanceof Response) return result;
-    if (result == null) return new Response(null, { status: 204 });
+    if (result === null || result === undefined) return new Response(null, { status: 204 });
     if (typeof result === 'string') return new Response(result, { status: 200 });
     return Response.json(result);
   }

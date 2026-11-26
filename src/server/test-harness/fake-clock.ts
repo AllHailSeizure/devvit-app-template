@@ -29,8 +29,9 @@ export class FakeClock {
     vi.setSystemTime(new Date(time));
   }
 
-  advance(ms: number): void {
-    this.set(this.now() + ms);
+  /** Move time forward by ms or a duration string ('90s', '5m', '2h', '7d'). Does not run jobs; see `runner.advance`. */
+  advance(duration: number | string): void {
+    this.set(this.now() + parseDuration(duration));
   }
 
   /** Called by the fixture after each test. */

@@ -65,7 +65,7 @@ const changed = [
 const scriptChanged =
   !existsSync(join(root, SCRIPT)) || readFileSync(join(src, SCRIPT), 'utf8') !== readFileSync(join(root, SCRIPT), 'utf8');
 
-const before = existsSync(join(root, HARNESS, 'index.ts')) ? version(root) : 'none';
+const before = existsSync(join(root, HARNESS, 'index.ts')) ? (version(root) ?? 'unversioned') : 'none';
 const after = version(src);
 
 if (check) {

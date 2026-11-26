@@ -373,7 +373,7 @@ export class FakeRedditWorld {
     const authorName = opts.author ?? this.findUserById(opts.authorId)?.username ?? 'testuser';
     const author = this.user(authorName, opts.authorId ? { id: opts.authorId as T2 } : {});
     const record: FakePostRecord = {
-      id: opts.id ?? (`t3_${this.nextId('p')}` as T3),
+      id: this.claimId(opts.id, 't3_p') as T3,
       title: opts.title,
       selftext: opts.selftext ?? opts.body,
       url: opts.url,
@@ -407,7 +407,7 @@ export class FakeRedditWorld {
       : this.requireComment(opts.parentId as T1).postId;
     const author = this.user(opts.author ?? 'testuser');
     const record: FakeCommentRecord = {
-      id: opts.id ?? (`t1_${this.nextId('c')}` as T1),
+      id: this.claimId(opts.id, 't1_c') as T1,
       parentId: opts.parentId,
       postId: parentPostId,
       body: opts.body,
@@ -554,6 +554,18 @@ export class FakeRedditWorld {
 
   private nextId(prefix: string): string {
     return `${prefix}${(this.seq++).toString(36)}`;
+  }
+
+  /** An explicit id must be unused; generated ids skip ids a test already seeded. */
+  private claimId(explicit: string | undefined, prefix: string): string {
+    const taken = (id: string) => this.posts.has(id) || this.comments.some((c) => c.id === id);
+    if (explicit) {
+      if (taken(explicit)) throw new Error(`FakeRedditWorld: ${explicit} already exists`);
+      return explicit;
+    }
+    let id = this.nextId(prefix);
+    while (taken(id)) id = this.nextId(prefix);
+    return id;
   }
 
   private findUser(username: string | undefined): FakeUserRecord | undefined {

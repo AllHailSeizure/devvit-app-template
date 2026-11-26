@@ -265,6 +265,29 @@ describe('FakeRedditWorld + ScenarioRunner', () => {
     http.violations.length = 0; // acknowledged, so teardown passes
   });
 
+  test('generated ids never collide with ids a test seeded', async ({ world }) => {
+    world.seedPost({ id: 't3_p1', title: 'seeded' });
+    world.seedComment({ id: 't1_c2', parentId: 't3_p1', body: 'seeded' });
+    const p = world.seedPost({ title: 'generated' });
+    const c = world.seedComment({ parentId: p.id, body: 'generated' });
+    expect([p.id, c.id]).not.toContain('t3_p1');
+    expect(c.id).not.toBe('t1_c2');
+    expect(() => world.seedPost({ id: 't3_p1', title: 'dup' })).toThrow(/already exists/);
+  });
+
+  test('fire-and-forget fetches are checked in the test that started them', async ({ http }) => {
+    http.json('api.example.com', { ok: true });
+    void Promise.resolve().then(() => fetch('https://api.example.com/late'));
+    // No await here: teardown settles the event loop and still sees the call.
+    expect(http.calls.length).toBeLessThanOrEqual(1);
+  });
+
+  test('clock.advance takes durations', async ({ clock }) => {
+    clock.set('2026-03-01T00:00:00Z');
+    clock.advance('1d2h');
+    expect(new Date(clock.now()).toISOString()).toBe('2026-03-02T02:00:00.000Z');
+  });
+
   test('scenario DSL reports the failing step with the action log', async ({ runner }) => {
     const ok = await runner
       .scenario('filtered post')

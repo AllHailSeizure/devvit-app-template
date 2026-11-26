@@ -18,7 +18,7 @@ import { FakeRedditWorld, type WorldExtension } from './fake-reddit-world';
 import { ScenarioRunner } from './scenario-runner';
 
 /** Bumped whenever the harness changes; apps record the version they synced. */
-export const HARNESS_VERSION = '2.0.0';
+export const HARNESS_VERSION = '2.1.0';
 
 export * from './fake-reddit-world';
 export {
@@ -90,6 +90,16 @@ function checkKeys(config: DevvitConfig, values: Record<string, unknown>, where:
   }
 }
 
+/** Yields to the event loop until no new fetches have been made for a few turns. */
+async function settle(http: FakeHttp): Promise<void> {
+  let quiet = 0;
+  for (let i = 0; i < 50 && quiet < 3; i++) {
+    const before = http.calls.length;
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    quiet = http.calls.length === before ? quiet + 1 : 0;
+  }
+}
+
 function wrapTestApi<T extends (...args: never[]) => unknown>(
   target: T,
   options: ModTestOptions,
@@ -151,6 +161,10 @@ function wrapTestApi<T extends (...args: never[]) => unknown>(
           } catch (err) {
             failure = err;
           } finally {
+            // Let fire-and-forget work (e.g. un-awaited remote logging) finish inside
+            // the test that started it, so its fetches are checked here and do not
+            // leak into the next test.
+            await settle(http);
             clock.restore();
           }
           if (failure !== undefined) throw failure;
