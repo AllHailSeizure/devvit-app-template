@@ -54,6 +54,8 @@ npm run dev         # npx devvit playtest (requires Devvit login)
 
 See `src/server/app.test.ts` for a working example.
 
+> `createModTest()` wraps plain `test(...)` calls only. For parameterised cases, loop over the cases and call `test(...)` for each one: `test.each` / `test.for` bypass the wrapper, so their tests get no `world` or `runner`.
+
 ---
 
 ## Required GitHub Secret (`DEVVIT_AUTH_TOKEN`)
