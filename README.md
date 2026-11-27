@@ -1,123 +1,94 @@
-# devvit-app-template
+# Devvit App Template
 
-Standard template for standalone [Reddit Devvit](https://developers.reddit.com/docs) Web apps under `AllHailSeizure`.
+**A production-ready starting point for [Reddit Devvit](https://developers.reddit.com/docs) Web apps — Hono server, offline Reddit simulation, and local quality checks in one repo.**
 
-## Included Stack
+<!-- SCREENSHOT: Devvit playtest or a moderator clicking "Example Action" on a post and seeing the success toast -->
 
-- **Runtime & SDK:** Node `24` (`.node-version`), `@devvit/web`, `@devvit/start`, `@devvit/shared-types`, and `devvit` CLI pinned consistently (`0.15.6`).
-- **Server:** Hono (`src/server/app.ts` separated from `src/server/index.ts` so routes can be tested in-process).
-- **Quality gates:** `npm run check` runs `eslint`, `tsc --noEmit` (`strict: true`), `vitest`, and `vite build` (`dist/server/index.cjs`).
-- **No-login testing:** `@devvit/test` (`createDevvitTest()`) extended by `FakeRedditWorld` + `ScenarioRunner` (`src/server/test-harness/`) for testing Hono triggers/menus and mocking Moderation/Listing/Flair APIs without logging in to Reddit.
-- **Helpers:** Lightweight `logger()` (`src/server/helpers/logger.ts`) and `formatSignature()` (`src/server/helpers/signature.ts`).
-- **CI/CD & Legal Docs:** GitHub Actions CI (`ci.yml`), tag-triggered lockstep release (`release.yml`), and per-repo GitHub Pages legal site (`docs/` + `pages.yml`).
+> 📸 Screenshot coming soon: the template’s example moderator menu action and optional post-submit automation in a playtest subreddit.
 
----
+## What you get
 
-## Creating a New App From This Template
+- **Node 24** (see `.node-version`) with **Devvit Web** `@devvit/web` and the `devvit` CLI pinned at **0.15.6** (matches `package.json`).
+- **Hono server** — route logic in `src/server/app.ts`, thin entry in `src/server/index.ts` so you can test routes in-process.
+- **Example Devvit surface** in `devvit.json`:
+  - `onPostSubmit` trigger at `/internal/triggers/post-submit`
+  - Moderator post menu **Example Action** at `/internal/menu/example-action`
+  - Subreddit settings: `enabled` (boolean) and `botSignature` (paragraph)
+  - Permissions: Redis and Reddit API enabled; placeholder playtest subreddit in `dev.subreddit`
+- **Sample behavior** — posts whose titles contain `[TEST-REMOVE]` get a bot comment (with optional signature) and removal; the menu shows a success toast. Replace this with your own logic.
+- **Helpers** — `logger()` (`src/server/helpers/logger.ts`) and `formatSignature()` (`src/server/helpers/signature.ts`).
+- **`npm run check`** — ESLint, TypeScript (`strict`), Vitest, and Vite build (`dist/server/index.cjs`) in one command.
+- **No-login tests** — `createModTest()` in `src/server/test-harness/` wraps `@devvit/test` with `FakeRedditWorld`, `ScenarioRunner`, `FakeHttp`, and endpoint coverage checks. See [`src/server/test-harness/README.md`](src/server/test-harness/README.md) and `src/server/app.test.ts`.
+- **Legal docs scaffold** — Jekyll pages under `docs/` (terms and privacy). Customize before the Reddit Developer Portal.
 
-1. On GitHub, click **Use this template → Create a new repository** under `AllHailSeizure` (public, default branch `master`).
-2. Clone the new repository and customize these files:
-   - `package.json` — set `"name"` to your app slug and `"version"` to your starting 3-part SemVer (e.g. `"0.1.0"` or matching your existing Devvit App Store version).
-   - `devvit.json` — set `"name"` to your unique Devvit app slug, update `dev.subreddit`, `permissions`, `triggers`, `menu`, and `settings`.
-   - `assets/icon.png` — replace the placeholder icon.
-   - `docs/_config.yml` — update `title` and `baseurl` (`"/<your-repo-name>"`).
-   - `docs/privacy.md` & `docs/terms.md` — replace `<APP_NAME>` and tailor data/terms sections.
-3. Install dependencies and verify locally:
+## Start a new app from this template
+
+### 1. Create your repository
+
+On GitHub, open this repo and choose **Use this template → Create a new repository**.
+
+### 2. Rename and configure
+
+Clone your new repo, then update:
+
+| Item | What to change |
+|------|----------------|
+| `package.json` | `"name"` (your app slug) and `"version"` (starting SemVer, e.g. `0.1.0`) |
+| `devvit.json` | `"name"`, `dev.subreddit` (playtest community), `permissions`, `triggers`, `menu`, `settings` |
+| `assets/icon.png` | Your app icon (`marketingAssets.icon` in `devvit.json`) |
+| `docs/_config.yml` | `title` and `baseurl` (e.g. `"/your-repo-name"`) |
+| `docs/privacy.md` & `docs/terms.md` | Replace `<APP_NAME>`, set effective dates, tailor sections |
+
+### 3. Install and verify
 
 ```sh
 npm install
 npm run check
 ```
 
-4. Enable **GitHub Pages** in repository **Settings → Pages → Source: GitHub Actions** so `docs/` publishes to `https://allhailseizure.github.io/<repo>/`.
-5. Configure the `DEVVIT_AUTH_TOKEN` secret (see below).
+### 4. Playtest on Reddit (optional)
 
----
-
-## Local Commands
+Requires a Devvit login and a subreddit you can use for development (`dev.subreddit` in `devvit.json`):
 
 ```sh
-npm run check       # lint + typecheck + test + vite build
-npm run lint        # ESLint
+npm run dev
+```
+
+(`npm run dev` runs `devvit playtest`.)
+
+### 5. Host legal pages (optional)
+
+If you use `docs/` for Terms and Privacy, enable **GitHub Pages** in repository settings with **Source: GitHub Actions**. Set `url` and `baseurl` in `docs/_config.yml` so links resolve on your Pages site.
+
+## Day-to-day commands
+
+```sh
+npm run check       # lint + typecheck + test + build
+npm run lint        # ESLint on src/
+npm run lint:fix    # ESLint with --fix
+npm run format      # Prettier --write on src/
 npm run typecheck   # tsc --noEmit
-npm test            # Vitest (no Reddit login required)
-npm run build       # Vite build -> dist/server/index.cjs
-npm run dev         # npx devvit playtest (requires Devvit login)
+npm test            # vitest run (no Reddit login)
+npm run test:watch  # vitest watch mode
+npm run build       # vite build -> dist/server/index.cjs
+npm run dev         # devvit playtest
 ```
 
-### No-Login Testing (offline virtual Reddit)
+## Offline testing (brief)
 
-`createModTest()` in `src/server/test-harness/` wraps `@devvit/test` with:
+`createModTest({ appFactory: createApp, settings: { … } })` gives each test a fake Reddit (`world`), scenario runner (`runner`), HTTP stubs (`http`), and more. Use plain `test(...)` only — `test.each` / `test.for` skip the wrapper.
 
-- **`FakeRedditWorld`**: subreddits, users (mods, approved, banned, bots), threaded posts and comments, flair, reports, removals and approvals, modmail, wiki pages, mod notes and private messages behind the `reddit.*` API. Every write the app makes is logged (`world.describeActions()`).
-- **`ScenarioRunner`**:
-  - Simulates Reddit activity (`userPosts`, `userComments`, `report`, `modRemoves`, `userModmails`, `install`, …) and fires whichever triggers `devvit.json` declares.
-  - Clicks menus and submits forms as a given user.
-  - Advances a fake clock that runs cron tasks and `scheduler.runJob` jobs.
-  - Offers a `given` / `when` / `then` scenario DSL.
-- **`FakeHttp`**: per-domain `fetch` stubs. An unstubbed call fails the test, so does a host missing from `devvit.json` `permissions.http.domains`, and reddit.com is always blocked.
-- **Coverage**: `expectAllEndpointsCovered()` fails if any declared trigger, menu, form or scheduler endpoint has no scenario.
-
-See [`src/server/test-harness/README.md`](src/server/test-harness/README.md) for the API and known gaps, and `src/server/app.test.ts` for an example.
-
-Apps created from this template keep the harness up to date with `npm run harness:sync`. `npm run harness:check` and the weekly `harness-drift` workflow report drift. Do not edit the harness folder in an app repo.
-
-> `createModTest()` wraps plain `test(...)` calls only. For parameterised cases, loop over the cases and call `test(...)` for each one: `test.each` / `test.for` bypass the wrapper, so their tests get no `world` or `runner`.
-
----
-
-## Required GitHub Secret (`DEVVIT_AUTH_TOKEN`)
-
-The tag release workflow requires a repository (or organization) secret named **`DEVVIT_AUTH_TOKEN`** containing the **full raw contents** of your logged-in `~/.devvit/token` file:
+Apps forked from this template should refresh the harness from upstream with:
 
 ```sh
-npx devvit login
-npx devvit whoami
-gh secret set DEVVIT_AUTH_TOKEN < ~/.devvit/token
+npm run harness:sync
+npm run harness:check
 ```
 
-On Windows PowerShell:
+Do not edit `src/server/test-harness/` or `scripts/sync-test-harness.mjs` by hand in an app repo; sync from this template instead.
 
-```powershell
-npx devvit whoami
-Get-Content -LiteralPath (Join-Path $env:USERPROFILE '.devvit/token') -Raw |
-  gh secret set DEVVIT_AUTH_TOKEN
-```
+Full API: [`src/server/test-harness/README.md`](src/server/test-harness/README.md).
 
-> **Security & reliability note:** `DEVVIT_AUTH_TOKEN` is an undocumented CLI environment variable holding your personal Reddit OAuth refresh token — not a scoped CI service account. Keep it strictly on the tag release job (never PR workflows), rotate it if compromised, and note that it can expire or require re-login (`devvit login`) if Reddit invalidates sessions.
+## License
 
----
-
-## Versioning & Release Process
-
-### Versioning Rules
-
-- **Strict 3-part SemVer only:** `MAJOR.MINOR.PATCH` (e.g. `1.2.0`). Never use 4-part versions or prerelease suffixes for releases.
-- **Lockstep invariant:** Every release keeps four artifacts identical:
-  1. `package.json` and `package-lock.json` (`"version": "X.Y.Z"`)
-  2. Git tag (`vX.Y.Z`)
-  3. GitHub Release (`vX.Y.Z`)
-  4. Devvit App Store (`X.Y.Z`)
-
-### Running a Release
-
-Releases are tag-triggered. Pushing a `vX.Y.Z` tag runs **Release Devvit app** (`release.yml`), which publishes **that exact tagged commit** to the Devvit App Store. There is no manual publish button.
-
-Only Nate approves releases. Once Nate has approved a release, Devviteloper (Nate's Devvit project-lead bot) pushes the `vX.Y.Z` tag. Devvit PRs may be merged by Nate or Devviteloper. The release workflow does not enforce that approval; it is a process rule.
-
-1. In a PR, bump the version in `package.json` and `package-lock.json` (`npm version X.Y.Z --no-git-tag-version`), merge it to `master` (Nate or Devviteloper may merge), and wait for **CI** (`ci.yml`) to pass.
-2. After Nate has approved the release, Devviteloper tags the merged commit and pushes **only the tag**:
-
-```sh
-git checkout master && git pull
-git tag -a vX.Y.Z -m "Release vX.Y.Z"
-git push origin vX.Y.Z
-```
-
-3. The workflow (a thin caller of the shared [`devvit-release.yml`](https://github.com/AllHailSeizure/.github/blob/master/.github/workflows/devvit-release.yml)) checks out the tag's commit and fails before publishing unless the tag is strict SemVer `vX.Y.Z`, the commit is on `master`, and `package.json` and `package-lock.json` already say `X.Y.Z`. It then runs `npm run check`, authenticates via `DEVVIT_AUTH_TOKEN`, runs `npx --no devvit publish --version X.Y.Z` (with `DEVVIT_ALLOW_SOURCE_UPLOAD=1`), asserts the store reports `X.Y.Z`, and creates GitHub Release `vX.Y.Z`. CI never pushes a commit back.
-
-Releases publish as **unlisted**. To publish publicly, change `visibility: unlisted` to `public` in `release.yml`.
-
-If a tag fails validation, nothing was published: delete the tag (`git push origin :refs/tags/vX.Y.Z`), fix the cause, and tag again. One release runs at a time per repository, so push tags one at a time.
-
-> Note: `devvit publish` submits a version to Reddit's Developer Portal. Installing/upgrading on a subreddit (`devvit install`) and deploying any external Supabase migrations/functions remain separate steps.
+This project is [MIT licensed](LICENSE) (`package.json` sets `"license": "MIT"`). Copyright (c) 2026 Nate Bosma.
