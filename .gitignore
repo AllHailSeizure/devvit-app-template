@@ -6,7 +6,7 @@ coverage/
 # Devvit local state
 .devvit/
 
-# Environment & secrets
+# Local environment files
 .env
 .env.*
 *.local

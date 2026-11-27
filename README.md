@@ -18,7 +18,7 @@
 - **Sample behavior** — posts whose titles contain `[TEST-REMOVE]` get a bot comment (with optional signature) and removal; the menu shows a success toast. Replace this with your own logic.
 - **Helpers** — `logger()` (`src/server/helpers/logger.ts`) and `formatSignature()` (`src/server/helpers/signature.ts`).
 - **`npm run check`** — ESLint, TypeScript (`strict`), Vitest, and Vite build (`dist/server/index.cjs`) in one command.
-- **No-login tests** — `createModTest()` in `src/server/test-harness/` wraps `@devvit/test` with `FakeRedditWorld`, `ScenarioRunner`, `FakeHttp`, and endpoint coverage checks. See [`src/server/test-harness/README.md`](src/server/test-harness/README.md) and `src/server/app.test.ts`.
+- **Offline tests** — `createModTest()` in `src/server/test-harness/` wraps `@devvit/test` with `FakeRedditWorld`, `ScenarioRunner`, `FakeHttp`, and endpoint coverage checks. See [`src/server/test-harness/README.md`](src/server/test-harness/README.md) and `src/server/app.test.ts`.
 - **Legal docs scaffold** — Jekyll pages under `docs/` (terms and privacy). Customize before the Reddit Developer Portal.
 
 ## Start a new app from this template
@@ -48,13 +48,13 @@ npm run check
 
 ### 4. Playtest on Reddit (optional)
 
-Requires a Devvit login and a subreddit you can use for development (`dev.subreddit` in `devvit.json`):
+Point `dev.subreddit` in `devvit.json` at a development community, then run:
 
 ```sh
 npm run dev
 ```
 
-(`npm run dev` runs `devvit playtest`.)
+(`npm run dev` runs `devvit playtest` against live Reddit.)
 
 ### 5. Host legal pages (optional)
 
@@ -68,7 +68,7 @@ npm run lint        # ESLint on src/
 npm run lint:fix    # ESLint with --fix
 npm run format      # Prettier --write on src/
 npm run typecheck   # tsc --noEmit
-npm test            # vitest run (no Reddit login)
+npm test            # vitest run (offline)
 npm run test:watch  # vitest watch mode
 npm run build       # vite build -> dist/server/index.cjs
 npm run dev         # devvit playtest

@@ -59,7 +59,7 @@ type TriggerName =
 
 /**
  * Drives an app's Hono routes in-process inside the `@devvit/test` world: no HTTP
- * listener, no Reddit login. Low-level calls (`trigger`, `menu`, `form`,
+ * listener, fully offline. Low-level calls (`trigger`, `menu`, `form`,
  * `postJson`) hit a route directly. High-level calls (`userPosts`, `userComments`,
  * `report`, `modRemoves`, `advance`, ...) change FakeRedditWorld and then fire
  * whichever triggers or scheduler tasks the app declares in devvit.json, the way
